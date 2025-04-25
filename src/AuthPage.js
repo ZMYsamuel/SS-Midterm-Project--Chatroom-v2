@@ -17,7 +17,14 @@ function AuthPage() {
         await signInWithEmailAndPassword(auth, email, password);
         alert('登入成功！');
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const user = await createUserWithEmailAndPassword(auth, email, password);
+        const userRef = doc(collection(db, 'users'), user.user.uid);
+        await setDoc(userRef, {
+          uid: user.user.uid,
+          email: user.user.email,
+          displayName: user.user.displayName || '',
+          photoURL: user.user.photoURL || ''
+        }, { merge: true });
         alert('註冊成功！');
       }
     } catch (error) {
