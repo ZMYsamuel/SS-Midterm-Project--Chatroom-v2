@@ -5,6 +5,7 @@ body {
   padding: 0;
   background-color: #f4f4f9;
   color: #333;
+  box-sizing: border-box;
 }
 
 h1,
@@ -49,6 +50,7 @@ input[type="password"] {
   border-radius: 5px;
   overflow-y: auto;
   margin-bottom: 15px;
+  max-height: 50vh;
 }
 
 .message {
@@ -89,6 +91,7 @@ input[type="password"] {
   display: flex;
   gap: 20px;
   padding: 20px;
+  flex-direction: column;
 }
 
 /* 側邊欄樣式 */
@@ -99,6 +102,7 @@ input[type="password"] {
   border-radius: 5px;
   padding: 15px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
 .sidebar h2 {
@@ -140,6 +144,7 @@ input[type="password"] {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .chatroom-header {
@@ -187,6 +192,7 @@ input[type="password"] {
   align-items: center;
   height: 100vh;
   background-color: #f4f4f9;
+  padding: 20px;
 }
 
 .auth-box {
@@ -195,8 +201,9 @@ input[type="password"] {
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
-  width: 100%;
+  width: 90%;
   max-width: 400px;
+  margin: 0 auto;
 }
 
 .auth-box h1 {
@@ -269,8 +276,9 @@ input[type="password"] {
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
-  width: 100%;
+  width: 90%;
   max-width: 800px;
+  margin: 0 auto;
   margin-bottom: 20px;
 }
 
@@ -298,8 +306,9 @@ input[type="password"] {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  width: 100%;
+  width: 90%;
   max-width: 800px;
+  margin: 0 auto;
 }
 
 .create-chatroom-section,
@@ -399,4 +408,59 @@ input[type="password"] {
 
 .chatroom-button:hover {
   background-color: #e9ecef;
+}
+
+/* RWD: Media Queries */
+@media (max-width: 768px) {
+  .auth-box {
+    padding: 20px;
+  }
+
+  .login-header,
+  .login-main {
+    width: 100%;
+  }
+
+  .chatroom-container {
+    padding: 10px;
+  }
+
+  .sidebar {
+    padding: 10px;
+  }
+
+  .chatroom-main {
+    padding: 10px;
+  }
+
+  .message-container {
+    max-height: 40vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-box {
+    padding: 15px;
+  }
+
+  .login-header,
+  .login-main {
+    width: 100%;
+  }
+
+  .chatroom-container {
+    padding: 5px;
+  }
+
+  .sidebar {
+    padding: 5px;
+  }
+
+  .chatroom-main {
+    padding: 5px;
+  }
+
+  .message-container {
+    max-height: 30vh;
+  }
 }
