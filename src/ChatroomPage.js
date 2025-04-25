@@ -1,17 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from './firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, getDocs } from 'firebase/firestore';
-import { useParams } from 'react-router-dom';
+import { collection, addDoc, query, orderBy, onSnapshot, getDocs, doc, getDoc, where } from 'firebase/firestore';
+import { useParams, useNavigate } from 'react-router-dom';
+import './styles.css';
 
 function ChatroomPage({ currentUser }) {
   const { chatroomId } = useParams();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [users, setUsers] = useState([]);
-  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [chatroomName, setChatroomName] = useState('');
+  const [chatrooms, setChatrooms] = useState([]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const fetchChatrooms = async () => {
+      const q = query(
+        collection(db, 'chatrooms'),
+        where('members', 'array-contains', currentUser.uid)
+      );
+      const chatroomsSnapshot = await getDocs(q);
+      const chatroomsList = chatroomsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setChatrooms(chatroomsList);
+    };
+
+    fetchChatrooms();
+  }, [currentUser]);
 
   useEffect(() => {
     if (!chatroomId) return;
+
+    // Fetch chatroom name
+    const fetchChatroomName = async () => {
+      const chatroomDoc = await getDoc(doc(db, 'chatrooms', chatroomId));
+      if (chatroomDoc.exists()) {
+        setChatroomName(chatroomDoc.data().name);
+      }
+    };
+    fetchChatroomName();
 
     const q = query(
       collection(db, `chatrooms/${chatroomId}/messages`),
@@ -23,16 +50,6 @@ function ChatroomPage({ currentUser }) {
     });
     return () => unsubscribe();
   }, [chatroomId]);
-
-  useEffect(() => {
-    // Fetch all users for member selection
-    const fetchUsers = async () => {
-      const usersSnapshot = await getDocs(collection(db, 'users'));
-      const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setUsers(usersList);
-    };
-    fetchUsers();
-  }, []);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -52,25 +69,40 @@ function ChatroomPage({ currentUser }) {
   };
 
   return (
-    <div>
-      <h1>聊天室</h1>
-      <p>登入中：{currentUser?.email}</p>
-      <div style={{ border: '1px solid #ccc', padding: '10px', height: '300px', overflowY: 'scroll' }}>
-        {messages.map((message) => (
-          <div key={message.id}>
-            <strong>{message.email}:</strong> {message.text}
-          </div>
-        ))}
-      </div>
-      <form onSubmit={handleSendMessage}>
-        <input
-          type="text"
-          placeholder="輸入訊息..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-        />
-        <button type="submit">發送</button>
-      </form>
+    <div className="chatroom-container">
+      <aside className="sidebar">
+        <h2>聊天室清單</h2>
+        <ul>
+          {chatrooms.map(chatroom => (
+            <li key={chatroom.id}>
+              <button onClick={() => navigate(`/chatroom/${chatroom.id}`)}>
+                {chatroom.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </aside>
+      <main className="chatroom-main">
+        <header className="chatroom-header">
+          <h1>{chatroomName}</h1>
+        </header>
+        <div className="message-container">
+          {messages.map((message) => (
+            <div key={message.id} className={`message ${message.uid === currentUser.uid ? 'own-message' : ''}`}>
+              <strong>{message.email}:</strong> {message.text}
+            </div>
+          ))}
+        </div>
+        <form onSubmit={handleSendMessage} className="message-form">
+          <input
+            type="text"
+            placeholder="輸入訊息..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+          />
+          <button type="submit">發送</button>
+        </form>
+      </main>
     </div>
   );
 }
