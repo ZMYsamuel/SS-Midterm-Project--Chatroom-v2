@@ -1,14 +1,4 @@
 {
-  "indexes": [
-    {
-      "collectionGroup": "messages",
-      "fields": [
-        {
-          "fieldPath": "text",
-          "order": "ASCENDING"
-        }
-      ]
-    }
-  ],
+  "indexes": [],
   "fieldOverrides": []
 }

@@ -125,12 +125,15 @@ function MainPage({ currentUser }) {
         const parentRef = doc.ref.parent.parent;
         if (parentRef) {
           const chatroomDoc = await getDoc(parentRef);
-          const chatroomName = chatroomDoc.exists() ? chatroomDoc.data().name : 'Unknown Chatroom';
-          results.push({
-            id: doc.id,
-            text: data.text,
-            chatroomName,
-          });
+          const chatroomData = chatroomDoc.data();
+          if (chatroomData.members.includes(currentUser.uid)) { // Check if the user is a member of the chatroom
+            const chatroomName = chatroomDoc.exists() ? chatroomData.name : 'Unknown Chatroom';
+            results.push({
+              id: doc.id,
+              text: data.text,
+              chatroomName,
+            });
+          }
         } else {
           console.warn('Parent reference is null for document:', doc.id);
         }

@@ -208,7 +208,7 @@ function ChatroomPage({ currentUser }) {
             <button onClick={() => navigate('/')} className="back-to-main-button">返回主頁</button>
           </div>
         </header>
-        <input type="file" accept="image/*,video/*" onChange={handleFileUpload} className="file-upload-input" />
+
         <div className="message-container">
           {messages.map((message) => (
             <div key={message.id} className={`message ${message.uid === currentUser.uid ? 'own-message' : ''}`}>
@@ -221,6 +221,7 @@ function ChatroomPage({ currentUser }) {
             </div>
           ))}
         </div>
+        <input type="file" accept="image/*,video/*" onChange={handleFileUpload} className="file-upload-input" />
         <form onSubmit={handleSendMessage} className="message-form">
           <input
             type="text"
