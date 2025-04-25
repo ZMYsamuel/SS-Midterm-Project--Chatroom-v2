@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from './firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, getDocs, doc, getDoc, where } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, getDocs, doc, getDoc, where, deleteDoc } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
 import './styles.css';
 
@@ -11,6 +11,13 @@ function ChatroomPage({ currentUser }) {
   const [newMessage, setNewMessage] = useState('');
   const [chatroomName, setChatroomName] = useState('');
   const [chatrooms, setChatrooms] = useState([]);
+
+  // Function to sanitize message content
+  const sanitizeMessage = (message) => {
+    const div = document.createElement('div');
+    div.innerText = message;
+    return div.innerHTML;
+  };
 
   // Add debug logs to check notification flow
   useEffect(() => {
@@ -96,13 +103,15 @@ function ChatroomPage({ currentUser }) {
     return () => unsubscribe();
   }, [chatroomId, currentUser]);
 
+  // Apply sanitization before sending a message
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (newMessage.trim() === '') return;
 
     try {
+      const sanitizedMessage = sanitizeMessage(newMessage);
       await addDoc(collection(db, `chatrooms/${chatroomId}/messages`), {
-        text: newMessage,
+        text: sanitizedMessage,
         timestamp: new Date(),
         uid: currentUser.uid,
         email: currentUser.email,
@@ -110,6 +119,16 @@ function ChatroomPage({ currentUser }) {
       setNewMessage('');
     } catch (error) {
       alert(`無法發送訊息：${error.message}`);
+    }
+  };
+
+  // Function to handle unsending a message
+  const handleUnsendMessage = async (messageId) => {
+    try {
+      await deleteDoc(doc(db, `chatrooms/${chatroomId}/messages`, messageId));
+      console.log('Message unsent successfully');
+    } catch (error) {
+      console.error('Error unsending message:', error);
     }
   };
 
@@ -139,6 +158,9 @@ function ChatroomPage({ currentUser }) {
           {messages.map((message) => (
             <div key={message.id} className={`message ${message.uid === currentUser.uid ? 'own-message' : ''}`}>
               <strong>{message.email}:</strong> {message.text}
+              {message.uid === currentUser.uid && (
+                <button onClick={() => handleUnsendMessage(message.id)} className="unsend-button">Unsend</button>
+              )}
             </div>
           ))}
         </div>
