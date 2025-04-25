@@ -28,11 +28,13 @@ function MainPage({ currentUser }) {
   useEffect(() => {
     const fetchUsers = async () => {
       const usersSnapshot = await getDocs(collection(db, 'users'));
-      const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const usersList = usersSnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(user => user.id !== currentUser.uid); // 過濾掉當前使用者
       setUsers(usersList);
     };
     fetchUsers();
-  }, []);
+  }, [currentUser]);
 
   const handleCreateChatroom = async () => {
     if (!chatroomName.trim()) {
@@ -47,7 +49,7 @@ function MainPage({ currentUser }) {
     try {
       await addDoc(collection(db, 'chatrooms'), {
         name: chatroomName,
-        members: [currentUser.uid, ...selectedMembers],
+        members: [currentUser.uid, ...selectedMembers], // 自己自動成為成員
         createdAt: new Date(),
       });
       alert('聊天室創建成功！');
