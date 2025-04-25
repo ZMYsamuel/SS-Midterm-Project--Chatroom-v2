@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from './firebase';
 import { signOut } from 'firebase/auth';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
@@ -11,6 +11,7 @@ function MainPage({ currentUser }) {
   const [chatroomName, setChatroomName] = useState('');
   const [users, setUsers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [blockedUsers, setBlockedUsers] = useState([]);
 
   useEffect(() => {
     const fetchChatrooms = async () => {
@@ -34,6 +35,17 @@ function MainPage({ currentUser }) {
       setUsers(usersList);
     };
     fetchUsers();
+  }, [currentUser]);
+
+  // Load blocked users from Firestore on component mount
+  useEffect(() => {
+    const fetchBlockedUsers = async () => {
+      const blockedDoc = await getDoc(doc(db, 'blockedUsers', currentUser.uid));
+      if (blockedDoc.exists()) {
+        setBlockedUsers(blockedDoc.data().blocked || []);
+      }
+    };
+    fetchBlockedUsers();
   }, [currentUser]);
 
   const handleCreateChatroom = async () => {
@@ -61,6 +73,23 @@ function MainPage({ currentUser }) {
     }
   };
 
+  // Update Firestore when blocking or unblocking users
+  const toggleBlockUser = async (userId) => {
+    setBlockedUsers((prevBlockedUsers) => {
+      const updatedBlockedUsers = prevBlockedUsers.includes(userId)
+        ? prevBlockedUsers.filter((id) => id !== userId)
+        : [...prevBlockedUsers, userId];
+
+      // Save updated blocked users to Firestore
+      setDoc(doc(db, 'blockedUsers', currentUser.uid), { blocked: updatedBlockedUsers });
+
+      return updatedBlockedUsers;
+    });
+  };
+
+  // Filter out blocked users from the selectable members list
+  const filteredUsers = users.filter((user) => !blockedUsers.includes(user.id));
+
   return (
     <div className="login-container">
       <header className="login-header">
@@ -79,7 +108,7 @@ function MainPage({ currentUser }) {
           />
           <h3>選擇成員</h3>
           <ul className="user-list">
-            {users.map(user => (
+            {filteredUsers.map(user => (
               <li key={user.id} className="user-item">
                 <label>
                   <input
@@ -108,6 +137,23 @@ function MainPage({ currentUser }) {
                 <button onClick={() => navigate(`/chatroom/${chatroom.id}`)} className="chatroom-button">
                   {chatroom.name}
                 </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section className="block-user-section">
+          <h2>Block Users</h2>
+          <ul className="user-list">
+            {users.map((user) => (
+              <li key={user.id} className="user-item">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={blockedUsers.includes(user.id)}
+                    onChange={() => toggleBlockUser(user.id)}
+                  />
+                  {user.email}
+                </label>
               </li>
             ))}
           </ul>

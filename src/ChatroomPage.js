@@ -11,6 +11,7 @@ function ChatroomPage({ currentUser }) {
   const [newMessage, setNewMessage] = useState('');
   const [chatroomName, setChatroomName] = useState('');
   const [chatrooms, setChatrooms] = useState([]);
+  const [blockedUsers, setBlockedUsers] = useState([]);
 
   // Function to sanitize message content
   const sanitizeMessage = (message) => {
@@ -102,6 +103,34 @@ function ChatroomPage({ currentUser }) {
     });
     return () => unsubscribe();
   }, [chatroomId, currentUser]);
+
+  // Fetch blocked users from Firestore
+  useEffect(() => {
+    const fetchBlockedUsers = async () => {
+      const blockedDoc = await getDoc(doc(db, 'blockedUsers', currentUser.uid));
+      if (blockedDoc.exists()) {
+        setBlockedUsers(blockedDoc.data().blocked || []);
+      }
+    };
+    fetchBlockedUsers();
+  }, [currentUser]);
+
+  // Filter out messages from blocked users
+  useEffect(() => {
+    if (!chatroomId || !currentUser) return;
+
+    const q = query(
+      collection(db, `chatrooms/${chatroomId}/messages`),
+      orderBy('timestamp')
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const messagesData = snapshot.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .filter((message) => !blockedUsers.includes(message.uid)); // Exclude messages from blocked users
+      setMessages(messagesData);
+    });
+    return () => unsubscribe();
+  }, [chatroomId, currentUser, blockedUsers]);
 
   // Apply sanitization before sending a message
   const handleSendMessage = async (e) => {
