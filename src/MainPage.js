@@ -47,7 +47,7 @@ function MainPage({ currentUser }) {
     }
 
     try {
-      await addDoc(collection(db, 'chatrooms'), {
+      const chatroomRef = await addDoc(collection(db, 'chatrooms'), {
         name: chatroomName,
         members: [currentUser.uid, ...selectedMembers], // 自己自動成為成員
         createdAt: new Date(),
@@ -55,6 +55,7 @@ function MainPage({ currentUser }) {
       alert('聊天室創建成功！');
       setChatroomName('');
       setSelectedMembers([]);
+      navigate(`/chatroom/${chatroomRef.id}`); // 創建後直接進入聊天室
     } catch (error) {
       alert(`無法創建聊天室：${error.message}`);
     }

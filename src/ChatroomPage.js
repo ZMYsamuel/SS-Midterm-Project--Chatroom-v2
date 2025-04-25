@@ -29,16 +29,27 @@ function ChatroomPage({ currentUser }) {
   }, [currentUser]);
 
   useEffect(() => {
-    if (!chatroomId) return;
+    if (!chatroomId || !currentUser) return;
 
-    // Fetch chatroom name
-    const fetchChatroomName = async () => {
+    const verifyMembership = async () => {
       const chatroomDoc = await getDoc(doc(db, 'chatrooms', chatroomId));
-      if (chatroomDoc.exists()) {
-        setChatroomName(chatroomDoc.data().name);
+      if (!chatroomDoc.exists()) {
+        alert('聊天室不存在！');
+        navigate('/');
+        return;
       }
+
+      const chatroomData = chatroomDoc.data();
+      if (!chatroomData.members.includes(currentUser.uid)) {
+        alert('您不是此聊天室的成員，無法進入！');
+        navigate('/');
+        return;
+      }
+
+      setChatroomName(chatroomData.name);
     };
-    fetchChatroomName();
+
+    verifyMembership();
 
     const q = query(
       collection(db, `chatrooms/${chatroomId}/messages`),
@@ -49,7 +60,7 @@ function ChatroomPage({ currentUser }) {
       setMessages(messagesData);
     });
     return () => unsubscribe();
-  }, [chatroomId]);
+  }, [chatroomId, currentUser]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -85,6 +96,10 @@ function ChatroomPage({ currentUser }) {
       <main className="chatroom-main">
         <header className="chatroom-header">
           <h1>{chatroomName}</h1>
+          <div className="chatroom-header-actions">
+            <span>目前登入：{currentUser.email}</span>
+            <button onClick={() => navigate('/')} className="back-to-main-button">返回主頁</button>
+          </div>
         </header>
         <div className="message-container">
           {messages.map((message) => (
