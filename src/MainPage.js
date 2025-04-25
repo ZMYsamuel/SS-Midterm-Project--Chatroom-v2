@@ -4,6 +4,7 @@ import { signOut } from 'firebase/auth';
 import { collection, query, where, getDocs, addDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
+import UserProfileModal from './UserProfileModal';
 
 function MainPage({ currentUser }) {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ function MainPage({ currentUser }) {
   const [users, setUsers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [blockedUsers, setBlockedUsers] = useState([]);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchChatrooms = async () => {
@@ -91,7 +93,7 @@ function MainPage({ currentUser }) {
   const filteredUsers = users.filter((user) => !blockedUsers.includes(user.id));
 
   return (
-    <div className="login-container">
+    <div className="main-page-container">
       <header className="login-header">
         <h1>歡迎，{currentUser.email}</h1>
         <button onClick={() => signOut(auth)} className="logout-button">登出</button>
@@ -158,6 +160,13 @@ function MainPage({ currentUser }) {
             ))}
           </ul>
         </section>
+        <button onClick={() => setIsProfileModalOpen(true)} className="profile-button">Edit Profile</button>
+        {isProfileModalOpen && (
+          <UserProfileModal
+            currentUser={currentUser}
+            onClose={() => setIsProfileModalOpen(false)}
+          />
+        )}
       </main>
     </div>
   );
