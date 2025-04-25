@@ -48,6 +48,7 @@ function UserProfileModal({ currentUser, onClose }) {
       console.log('Successfully saved to Firestore:', profileData);
       alert('Profile updated successfully!');
       onClose();
+      window.location.reload(); // Force reload to update user profile immediately
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile.');

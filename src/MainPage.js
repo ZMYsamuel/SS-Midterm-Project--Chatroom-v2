@@ -50,6 +50,23 @@ function MainPage({ currentUser }) {
     fetchBlockedUsers();
   }, [currentUser]);
 
+  useEffect(() => {
+    const fetchUpdatedUser = async () => {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        currentUser.photoURL = userData.photoURL || '';
+        currentUser.displayName = userData.displayName || '';
+        currentUser.email = userData.email || '';
+        currentUser.phoneNumber = userData.phoneNumber || '';
+        currentUser.address = userData.address || '';
+      }
+    };
+
+    fetchUpdatedUser();
+  }, [isProfileModalOpen]);
+
   const handleCreateChatroom = async () => {
     if (!chatroomName.trim()) {
       alert('請輸入聊天室名稱');
@@ -96,6 +113,26 @@ function MainPage({ currentUser }) {
     <div className="main-page-container">
       <header className="login-header">
         <h1>歡迎，{currentUser.email}</h1>
+
+        {isProfileModalOpen && (
+          <UserProfileModal
+            currentUser={currentUser}
+            onClose={() => setIsProfileModalOpen(false)}
+          />
+        )}
+        {!isProfileModalOpen && (
+          <div>
+            <div className="user-profile">
+              {currentUser.photoURL && <img src={currentUser.photoURL} alt="Profile" className="user-profile-picture" />}
+              <p><strong>名稱：</strong>{currentUser.displayName || '未設定'}</p>
+              <p><strong>Email：</strong>{currentUser.email}</p>
+              <p><strong>電話：</strong>{currentUser.phoneNumber || '未設定'}</p>
+              <p><strong>地址：</strong>{currentUser.address || '未設定'}</p>
+            </div>
+            <button onClick={() => setIsProfileModalOpen(true)} className="profile-button">Edit Profile</button>
+          </div>
+        )}
+
         <button onClick={() => signOut(auth)} className="logout-button">登出</button>
       </header>
       <main className="login-main">
@@ -160,13 +197,6 @@ function MainPage({ currentUser }) {
             ))}
           </ul>
         </section>
-        <button onClick={() => setIsProfileModalOpen(true)} className="profile-button">Edit Profile</button>
-        {isProfileModalOpen && (
-          <UserProfileModal
-            currentUser={currentUser}
-            onClose={() => setIsProfileModalOpen(false)}
-          />
-        )}
       </main>
     </div>
   );
