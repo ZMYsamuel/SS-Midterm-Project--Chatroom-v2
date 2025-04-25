@@ -12,6 +12,22 @@ function ChatroomPage({ currentUser }) {
   const [chatroomName, setChatroomName] = useState('');
   const [chatrooms, setChatrooms] = useState([]);
 
+  // Add debug logs to check notification flow
+  useEffect(() => {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().then((permission) => {
+        console.log('Notification permission status:', permission);
+        if (permission === 'granted') {
+          console.log('Notification permission granted.');
+        } else {
+          console.log('Notification permission denied.');
+        }
+      });
+    } else {
+      console.log('Notification permission already set to:', Notification.permission);
+    }
+  }, []);
+
   useEffect(() => {
     if (!currentUser) return;
 
@@ -51,6 +67,7 @@ function ChatroomPage({ currentUser }) {
 
     verifyMembership();
 
+    // Add debug logs to notification trigger
     const q = query(
       collection(db, `chatrooms/${chatroomId}/messages`),
       orderBy('timestamp')
@@ -58,6 +75,23 @@ function ChatroomPage({ currentUser }) {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const messagesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setMessages(messagesData);
+
+      if (messagesData.length > 0) {
+        const latestMessage = messagesData[messagesData.length - 1];
+        console.log('Latest message:', latestMessage);
+        if (Notification.permission === 'granted') {
+          try {
+            new Notification('New Message', {
+              body: latestMessage.text
+            });
+            console.log('Notification displayed successfully.');
+          } catch (error) {
+            console.error('Error displaying notification:', error);
+          }
+        } else {
+          console.log('Notification not shown. Permission status:', Notification.permission);
+        }
+      }
     });
     return () => unsubscribe();
   }, [chatroomId, currentUser]);
