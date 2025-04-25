@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from './firebase';
 import { signOut } from 'firebase/auth';
-import { collection, query, where, getDocs, addDoc, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, doc, setDoc, getDoc, collectionGroup } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 import UserProfileModal from './UserProfileModal';
@@ -14,6 +14,8 @@ function MainPage({ currentUser }) {
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     const fetchChatrooms = async () => {
@@ -106,6 +108,40 @@ function MainPage({ currentUser }) {
     });
   };
 
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    try {
+      const q = query(
+        collectionGroup(db, 'messages'),
+        where('text', '>=', searchQuery),
+        where('text', '<=', searchQuery + '\\uf8ff')
+      );
+      const querySnapshot = await getDocs(q);
+
+      const results = [];
+      for (const doc of querySnapshot.docs) {
+        const data = doc.data();
+        const parentRef = doc.ref.parent.parent;
+        if (parentRef) {
+          const chatroomDoc = await getDoc(parentRef);
+          const chatroomName = chatroomDoc.exists() ? chatroomDoc.data().name : 'Unknown Chatroom';
+          results.push({
+            id: doc.id,
+            text: data.text,
+            chatroomName,
+          });
+        } else {
+          console.warn('Parent reference is null for document:', doc.id);
+        }
+      }
+
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error searching messages:', error);
+    }
+  };
+
   // Filter out blocked users from the selectable members list
   const filteredUsers = users.filter((user) => !blockedUsers.includes(user.id));
 
@@ -196,6 +232,31 @@ function MainPage({ currentUser }) {
               </li>
             ))}
           </ul>
+        </section>
+        <section className="search-section">
+          <h2>搜尋訊息</h2>
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="搜尋訊息..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+            <button onClick={handleSearch} className="search-button">搜尋</button>
+          </div>
+          <div className="search-results">
+            {searchResults.map((result) => (
+              <div key={result.id} className="search-result-item">
+                <div className="search-result-header">
+                  <strong>聊天室：</strong>{result.chatroomName}
+                </div>
+                <div className="search-result-body">
+                  <p>{result.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
       </main>
     </div>
