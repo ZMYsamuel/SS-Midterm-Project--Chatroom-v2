@@ -3,6 +3,7 @@ import { auth, db } from './firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs, setDoc, doc, addDoc } from 'firebase/firestore';
+import './styles.css';
 
 function LoginPage({ currentUser }) {
   const navigate = useNavigate();
@@ -89,77 +90,92 @@ function LoginPage({ currentUser }) {
 
   if (currentUser) {
     return (
-      <div>
-        <h1>歡迎，{currentUser.email}</h1>
-        <button onClick={() => signOut(auth)}>登出</button>
-        <h2>創建聊天室</h2>
-        <input
-          type="text"
-          placeholder="聊天室名稱"
-          value={chatroomName}
-          onChange={(e) => setChatroomName(e.target.value)}
-        />
-        <h3>選擇成員</h3>
-        <ul>
-          {users.map(user => (
-            <li key={user.id}>
-              <label>
-                <input
-                  type="checkbox"
-                  value={user.id}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedMembers([...selectedMembers, user.id]);
-                    } else {
-                      setSelectedMembers(selectedMembers.filter(id => id !== user.id));
-                    }
-                  }}
-                />
-                {user.email}
-              </label>
-            </li>
-          ))}
-        </ul>
-        <button onClick={handleCreateChatroom}>創建聊天室</button>
-        <h2>你的聊天室</h2>
-        <ul>
-          {chatrooms.map(chatroom => (
-            <li key={chatroom.id}>
-              <button onClick={() => navigate(`/chatroom/${chatroom.id}`)}>
-                {chatroom.name}
-              </button>
-            </li>
-          ))}
-        </ul>
+      <div className="login-container">
+        <header className="login-header">
+          <h1>歡迎，{currentUser.email}</h1>
+          <button onClick={() => signOut(auth)} className="logout-button">登出</button>
+        </header>
+        <main className="login-main">
+          <section className="create-chatroom-section">
+            <h2>創建聊天室</h2>
+            <input
+              type="text"
+              placeholder="聊天室名稱"
+              value={chatroomName}
+              onChange={(e) => setChatroomName(e.target.value)}
+              className="chatroom-input"
+            />
+            <h3>選擇成員</h3>
+            <ul className="user-list">
+              {users.map(user => (
+                <li key={user.id} className="user-item">
+                  <label>
+                    <input
+                      type="checkbox"
+                      value={user.id}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedMembers([...selectedMembers, user.id]);
+                        } else {
+                          setSelectedMembers(selectedMembers.filter(id => id !== user.id));
+                        }
+                      }}
+                    />
+                    {user.email}
+                  </label>
+                </li>
+              ))}
+            </ul>
+            <button onClick={handleCreateChatroom} className="create-chatroom-button">創建聊天室</button>
+          </section>
+          <section className="chatroom-list-section">
+            <h2>你的聊天室</h2>
+            <ul className="chatroom-list">
+              {chatrooms.map(chatroom => (
+                <li key={chatroom.id} className="chatroom-item">
+                  <button onClick={() => navigate(`/chatroom/${chatroom.id}`)} className="chatroom-button">
+                    {chatroom.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </main>
       </div>
     );
   }
 
-  return (
-    <div>
-      <h1>{isLogin ? '登入' : '註冊'}</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">{isLogin ? '登入' : '註冊'}</button>
-      </form>
-      <button onClick={() => setIsLogin(!isLogin)}>
-        {isLogin ? '切換到註冊' : '切換到登入'}
-      </button>
-    </div>
-  );
+  if (!currentUser) {
+    return (
+      <div className="auth-container">
+        <div className="auth-box">
+          <h1>{isLogin ? '登入' : '註冊'}</h1>
+          <form onSubmit={handleSubmit} className="auth-form">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="auth-input"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="auth-input"
+            />
+            <button type="submit" className="auth-button">{isLogin ? '登入' : '註冊'}</button>
+          </form>
+          <button onClick={() => setIsLogin(!isLogin)} className="switch-button">
+            {isLogin ? '切換到註冊' : '切換到登入'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 }
 
 export default LoginPage;

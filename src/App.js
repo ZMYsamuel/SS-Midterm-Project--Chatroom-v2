@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useParams } from 'react-router-dom';
-import LoginPage from './LoginPage';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AuthPage from './AuthPage';
+import MainPage from './MainPage';
 import ChatroomPage from './ChatroomPage';
 import { auth } from './firebase';
-
-function ChatroomPageWrapper({ currentUser }) {
-  const { chatroomId } = useParams();
-  return <ChatroomPage currentUser={currentUser} chatroomId={chatroomId} />;
-}
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -22,8 +18,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LoginPage currentUser={currentUser} />} />
-        <Route path="/chatroom/:chatroomId" element={<ChatroomPageWrapper currentUser={currentUser} />} />
+        <Route path="/" element={currentUser ? <MainPage currentUser={currentUser} /> : <AuthPage />} />
+        <Route path="/chatroom/:chatroomId" element={<ChatroomPage currentUser={currentUser} />} />
       </Routes>
     </Router>
   );

@@ -75,7 +75,7 @@ function ChatroomPage({ currentUser }) {
         <ul>
           {chatrooms.map(chatroom => (
             <li key={chatroom.id}>
-              <button onClick={() => navigate(`/chatroom/${chatroom.id}`)}>
+              <button className="chatroom-button" onClick={() => navigate(`/chatroom/${chatroom.id}`)}>
                 {chatroom.name}
               </button>
             </li>
