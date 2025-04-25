@@ -161,6 +161,31 @@ function ChatroomPage({ currentUser }) {
     }
   };
 
+  // Function to handle file upload
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64Data = reader.result;
+
+      try {
+        await addDoc(collection(db, `chatrooms/${chatroomId}/messages`), {
+          text: '',
+          fileData: base64Data,
+          fileType: file.type.startsWith('image') ? 'image' : 'video',
+          timestamp: new Date(),
+          uid: currentUser.uid,
+          email: currentUser.email,
+        });
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="chatroom-container">
       <aside className="sidebar">
@@ -183,10 +208,13 @@ function ChatroomPage({ currentUser }) {
             <button onClick={() => navigate('/')} className="back-to-main-button">返回主頁</button>
           </div>
         </header>
+        <input type="file" accept="image/*,video/*" onChange={handleFileUpload} className="file-upload-input" />
         <div className="message-container">
           {messages.map((message) => (
             <div key={message.id} className={`message ${message.uid === currentUser.uid ? 'own-message' : ''}`}>
               <strong>{message.email}:</strong> {message.text}
+              {message.fileType === 'image' && <img src={message.fileData} alt="Uploaded" className="uploaded-image" />}
+              {message.fileType === 'video' && <video src={message.fileData} controls className="uploaded-video" />}
               {message.uid === currentUser.uid && (
                 <button onClick={() => handleUnsendMessage(message.id)} className="unsend-button">Unsend</button>
               )}
