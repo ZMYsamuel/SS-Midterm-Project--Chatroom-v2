@@ -87,11 +87,13 @@ function ChatroomPage({ currentUser }) {
       if (messagesData.length > 0) {
         const latestMessage = messagesData[messagesData.length - 1];
         console.log('Latest message:', latestMessage);
+        // Add alert to display notification content
         if (Notification.permission === 'granted') {
           try {
             new Notification('New Message', {
               body: latestMessage.text
             });
+            alert(`New Message: ${latestMessage.text}`); // Show alert with the same notification content
             console.log('Notification displayed successfully.');
           } catch (error) {
             console.error('Error displaying notification:', error);
